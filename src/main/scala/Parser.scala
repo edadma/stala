@@ -5,10 +5,10 @@ import xyz.hyperreal.pattern_matcher.{Matchers, Reader}
 
 object Parser extends Matchers[Reader] {
 
-  reserved ++= List( "const", "var", "procedure", "odd", "if", "then", "while", "do", "call" )
+  reserved ++= List( "const", "var", "def", "odd", "if", "then", "while", "do" )
   delimiters ++= List( "+", "-", "*", "/", "(", ")", ";", ",", ".", ":=", "=", "#", "<", "<=", ">", ">=", "!", "{", "}" )
 
-  def program = matchall(block <~ ".")
+  def program = matchall( programBlock )
 
   def const = pos ~ ident ~ "=" ~ integerLit ^^ {
     case p ~ n ~ _ ~ v => n -> (p, v)
@@ -29,15 +29,15 @@ object Parser extends Matchers[Reader] {
     case Some( l ) => l
   }
 
-  def proc: Matcher[(String, (Reader, Block))] = "procedure" ~ pos ~ ident ~ ";" ~ block ~ ";" ^^ {
-    case _ ~ p ~ n ~ _ ~ b ~ _ => n -> (p, b)
+  def proc: Matcher[ProcedureDeclaration] = "def" ~ pos ~ ident ~ ";" ~ block ~ ";" ^^ {
+    case _ ~ p ~ n ~ _ ~ b ~ _ => ProcedureDeclaration( p, n, Nil, b )
   }
 
-  def block = consts ~ vars ~ rep(proc) ~ statement ^^ {
-    case c ~ v ~ p ~ s => Block( c ++ v ++ p, s )
+  def programBlock = consts ~ vars ~ rep(proc) ~ statement ^^ {
+    case c ~ v ~ p ~ s => Program( c ++ v ++ p, s )
   }
 
-  def statement: Matcher[Statement] =
+  def statement: Matcher[StatementAST] =
     pos ~ ident ~ ":=" ~ expression ^^ { case p ~ n ~ _ ~ e => Assign( p, n, e ) } |
       "call" ~ pos ~ ident ^^ { case _ ~ p ~ n => Call( p, n ) } |
       "!" ~> expression ^^ Write |
@@ -49,9 +49,9 @@ object Parser extends Matchers[Reader] {
     "odd" ~> expression ^^ Odd |
       expression ~ ("="|"#"|"<"|"<="|">"|">=") ~ expression ^^ { case l ~ c ~ r => Comparison( l, c, r ) }
 
-  def expression: Matcher[Expression] = opt("+" | "-") ~ term ~ rep(("+" | "-") ~ term) ^^ {
+  def expression: Matcher[ExpressionAST] = opt("+" | "-") ~ term ~ rep(("+" | "-") ~ term) ^^ {
     case (None|Some("+")) ~ t ~ l => (l foldLeft t) { case (x, o ~ y) => Operation( x, o, y ) }
-    case _ ~ t ~ l => (l foldLeft (Negate( t ): Expression)) { case (x, o ~ y) => Operation( x, o, y ) }
+    case _ ~ t ~ l => (l foldLeft (Negate( t ): ExpressionAST)) { case (x, o ~ y) => Operation( x, o, y ) }
   }
 
   def term = factor ~ rep(("*" | "/") ~ factor) ^^ {
