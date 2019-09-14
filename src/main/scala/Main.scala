@@ -1,16 +1,23 @@
 package xyz.hyperreal.stala
 
+import scala.collection.immutable.ArraySeq
+
 
 object Main extends App {
 
   val s =
     """
-      |!123
+      |println( 123 )
     """.stripMargin
   val ast = Parser.parseProgram( io.Source.fromString(s) )
 
   println( ast )
 
-  Evaluator.evalBlock( ast, Nil )
+  val predefs =
+    Map(
+      "println" -> NativeFunction( 1, (a: ArraySeq[Any]) => println(a.head) )
+    )
+
+  Evaluator.evalBlock( ast, List(predefs) )
 
 }

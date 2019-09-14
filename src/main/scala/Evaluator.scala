@@ -1,14 +1,20 @@
 package xyz.hyperreal.stala
 
+import scala.collection.immutable.ArraySeq
+
 object Evaluator {
 
-  def evalBlock( block: BlockExpression, scope: List[Map[String, DeclarationAST]] ) =
+  def evalBlock( block: BlockExpression, scope: List[Map[String, Any]] ) =
     block.decls.groupBy(_.name) collectFirst { case (_, _ :: x :: _) => List(x) } match {
-      case None => evalStatements( block.stats, block.decls.map { d => d.name -> d }.toMap :: scope )
+      case None => evalStatements( block.stats, block.decls.map {
+        case ConstDeclaration( pos, name, value ) => name -> evalExpression( value, scope )
+        case VarDeclaration( pos, name, None ) => name -> Var( 0 )
+        case VarDeclaration( pos, name, Some(value) ) => name -> Var( evalExpression(value, scope) )
+        case d => d.name -> d }.toMap :: scope )
       case Some( List(d) ) => sys.error( d.pos.longErrorText(s"'${d.name}' is a duplicate") )
     }
 
-  def find( name: String, scope: List[Map[String, DeclarationAST]] ): Option[(Any, List[Map[String, DeclarationAST]])] =
+  def find( name: String, scope: List[Map[String, Any]] ): Option[(Any, List[Map[String, Any]])] =
     scope match {
       case Nil => None
       case outer@h :: t => h get name match {
@@ -17,7 +23,7 @@ object Evaluator {
       }
     }
 
-  def evalStatements( stats: List[StatementAST], scope: List[Map[String, DeclarationAST]]) = {
+  def evalStatements( stats: List[StatementAST], scope: List[Map[String, Any]]) = {
     def eval( result: Any, rest: List[StatementAST] ): Any =
       rest match {
         case Nil => result
@@ -27,7 +33,7 @@ object Evaluator {
     eval( (), stats )
   }
 
-  def evalStatement( stat: StatementAST, scope: List[Map[String, DeclarationAST]]): Any =
+  def evalStatement( stat: StatementAST, scope: List[Map[String, Any]]): Any =
     stat match {
       case AssignStatement( pos, name, expr ) =>
         find( name, scope ) match {
@@ -46,29 +52,34 @@ object Evaluator {
       case ExpressionStatement( expr ) => evalExpression( expr, scope )
     }
 
-  def evalCondition( expr: ExpressionAST, scope: List[Map[String, DeclarationAST]] ) = evalExpression( expr, scope ).asInstanceOf[Boolean]
+  def evalCondition( expr: ExpressionAST, scope: List[Map[String, Any]] ) = evalExpression( expr, scope ).asInstanceOf[Boolean]
 
-  def evalInt( expr: ExpressionAST, scope: List[Map[String, DeclarationAST]] ) = evalExpression( expr, scope ).asInstanceOf[Number].intValue
+  def evalInt( expr: ExpressionAST, scope: List[Map[String, Any]] ) = evalExpression( expr, scope ).asInstanceOf[Number].intValue
 
-  def evalExpression( expr: ExpressionAST, scope: List[Map[String, DeclarationAST]] ): Any =
+  def evalArgs( name: String, args: ArraySeq[ExpressionAST], parmc: Int, scope: List[Map[String, Any]] ) = {
+    if (args.length < parmc)
+      sys.error( s"too few arguments to apply function '$name'" )
+    else if (args.length > parmc)
+      sys.error( s"too few arguments to apply function '$name'" )
+
+    args map (evalExpression( _, scope ))
+  }
+
+  def evalExpression( expr: ExpressionAST, scope: List[Map[String, Any]] ): Any =
     expr match {
       case b: BlockExpression => evalBlock( b, scope )
       case ApplyExpression( pos, name, args ) =>
         find( name, scope ) match {
           case None => sys.error(pos.longErrorText(s"function '$name' not declared"))
           case Some( (FunctionDeclaration(_, _, parms, stat), outer) ) =>
-            if (args.length < parms.length)
-              sys.error( s"too few arguments to apply function '$name'" )
-            else if (args.length > parms.length)
-              sys.error( s"too few arguments to apply function '$name'" )
-
-            evalStatement( stat, ((parms zip args) map {case ((p, n), v) => ConstDeclaration(p, n, v)}) :: outer )
+            evalStatement( stat, ((parms zip evalArgs(name, args, parms.length, scope)) map {case ((_, n), v) => n -> v}).toMap :: outer )
+          case Some( (NativeFunction(parmc, func), _) ) => func( evalArgs(name, args, parmc, scope) )
           case _ => sys.error( pos.longErrorText(s"'$name' not a function") )
         }
       case IfExpression( cond, yes, None ) => if (evalCondition(cond, scope)) evalExpression( yes, scope ) else ()
       case IfExpression( cond, yes, Some(no) ) => if (evalCondition(cond, scope)) evalExpression( yes, scope ) else no
       case IdentExpression(pos, name) =>
-        find(name, scope) match {
+        find( name, scope ) match {
           case None => sys.error(pos.longErrorText(s"'$name' not declared"))
           case Some((Var(v), _)) => v
           case Some((n: Int, _)) => n
@@ -110,3 +121,5 @@ object Evaluator {
 }
 
 case class Var( var v: Any )
+
+case class NativeFunction( parmc: Int, func: ArraySeq[Any] => Any )
