@@ -1,7 +1,5 @@
 package xyz.hyperreal.stala
 
-import scala.collection.immutable.ArraySeq
-
 
 object Main extends App {
 
@@ -10,6 +8,9 @@ object Main extends App {
       |const a = 3, b = 4;
       |var c = 3 + 4;
       |
+      |def func( a ) = a + 5;
+      |
+      |println( func(6) );
       |c = 5 + a;
       |println( c );
       |c = 123;
@@ -19,11 +20,6 @@ object Main extends App {
 
   println( ast )
 
-  val predefs =
-    Map(
-      "println" -> NativeFunction( 1, (a: ArraySeq[Any]) => println(a.head) )
-    )
-
-  Evaluator.evalBlock( ast, List(predefs) )
+  Evaluator.evalBlock( ast, List(Predef.map) )
 
 }

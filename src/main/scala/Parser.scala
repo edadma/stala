@@ -34,7 +34,7 @@ object Parser extends Matchers[Reader] {
   def parms = repsep(pos ~ ident, ",") ^^ (_ map { case p ~ i => (p, i) })
 
   def function: Matcher[FunctionDeclaration] =
-    ("def" ~> pos) ~ ident ~ ("(" ~> parms <~ ")") ~ ("=" ~> statement) ^^ {
+    ("def" ~> pos) ~ ident ~ ("(" ~> parms <~ ")") ~ ("=" ~> (("{" ~> block <~ "}") ^^ ExpressionStatement | (statement <~ ";"))) ^^ {
       case p ~ n ~ ps ~ s => FunctionDeclaration( p, n, ArraySeq.from(ps), s )
     }
 
