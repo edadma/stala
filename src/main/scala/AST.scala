@@ -29,6 +29,5 @@ case class ComparisonExpression( first: ExpressionAST, rest: List[(String, Expre
 case class ApplyExpression( pos: Reader, name: String, args: ArraySeq[ExpressionAST] ) extends ExpressionAST
 case class NegateExpression( x: ExpressionAST ) extends ExpressionAST
 case class BinaryExpression( left: ExpressionAST, op: String, right: ExpressionAST ) extends ExpressionAST
-case class NumberExpression( n: Number ) extends ExpressionAST
-case class StringExpression( s: String ) extends ExpressionAST
+case class LiteralExpression( v: Any ) extends ExpressionAST
 case class IdentExpression( pos: Reader, name: String ) extends ExpressionAST

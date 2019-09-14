@@ -73,9 +73,9 @@ object Parser extends Matchers[Reader] {
     pos ~ ident ~ ("(" ~> repsep(expression, ",") <~ ")") ^^ {
       case p ~ n ~ a => ApplyExpression( p, n, ArraySeq.from(a) ) } |
     pos ~ ident ^^ { case p ~ v => IdentExpression( p, v ) } |
-    integerLit ^^ (n => NumberExpression( n.asInstanceOf[Number] )) |
-    floatLit ^^ (n => NumberExpression( n.asInstanceOf[Number] )) |
-    singleStringLit ^^ StringExpression |
+    integerLit ^^ (n => LiteralExpression( n.asInstanceOf[Number] )) |
+    floatLit ^^ (n => LiteralExpression( n.asInstanceOf[Number] )) |
+    singleStringLit ^^ LiteralExpression |
     ("if" ~> expression <~ "then") ~ expression ~ opt("else" ~> expression) ^^ { case c ~ y ~ n => IfExpression( c, y, n ) } |
     "{" ~> block <~ "}" |
     "(" ~> expression <~ ")"

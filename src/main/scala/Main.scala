@@ -7,7 +7,13 @@ object Main extends App {
 
   val s =
     """
-      |println( 123 )
+      |const a = 3, b = 4;
+      |var c = 3 + 4;
+      |
+      |c = 5 + a;
+      |println( c );
+      |c = 123;
+      |println( c )
     """.stripMargin
   val ast = Parser.parseProgram( io.Source.fromString(s) )
 

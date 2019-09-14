@@ -85,7 +85,7 @@ object Evaluator {
           case Some((n: Int, _)) => n
           case _ => sys.error(pos.longErrorText(s"'$name' not an integer"))
         }
-      case NumberExpression(n) => n
+      case LiteralExpression( v ) => v
       case BinaryExpression(left, "+", right) => evalInt(left, scope) + evalInt(right, scope)
       case BinaryExpression(left, "-", right) => evalInt(left, scope) - evalInt(right, scope)
       case BinaryExpression(left, "*", right) => evalInt(left, scope) * evalInt(right, scope)
