@@ -8,13 +8,19 @@ object Evaluator {
 //      case Some(List((name, (pos, _)))) => sys.error(pos.longErrorText(s"'$name' is a duplicate"))
 //    }
 
-  def find(name: String, scope: List[Map[String, Any]]): Option[(Any, List[Map[String, Any]])] =
+  def find( name: String, scope: List[Map[String, Any]] ): Option[(Any, List[Map[String, Any]])] =
     scope match {
       case Nil => None
       case inner@h :: t => h get name match {
         case None => find(name, t)
         case Some(v) => Some((v, inner))
       }
+    }
+
+  def evalProgram( prog: ProgramAST ) =
+    prog match {
+      case ProgramAST( decls, stat ) =>
+        evalStatement( stat, Nil )
     }
 
   def evalStatement( stat: StatementAST, scope: List[Map[String, Any]]): Unit =
@@ -31,24 +37,44 @@ object Evaluator {
 //          case Some((b: Block, inner)) => evalStatement(b, inner)
 //          case _ => sys.error(pos.longErrorText(s"'$name' not a procedure"))
 //        }
-      case WriteStatement( expr ) => println(evalExpression(expr, scope))
+      case IfStatement( cond, body ) => if (evalCondition(cond, scope)) evalStatement( body, scope )
       case SequenceStatement( stats ) => stats foreach (evalStatement(_, scope))
-      case IfStatement( cond, body ) => if (evalCondition(cond, scope)) evalStatement(body, scope)
-      case WhileStatement( cond, body ) => while (evalCondition(cond, scope)) evalStatement(body, scope)
+      case WhileStatement( cond, body ) => while (evalCondition(cond, scope)) evalStatement( body, scope )
     }
 
-  def evalCondition( cond: ConditionAST, scope: List[Map[String, Any]] ) =
+  def evalCondition( cond: ExpressionAST, scope: List[Map[String, Any]] ) =
     cond match {
-      case ComparisonCondition(left, "<", right) => evalExpression(left, scope) < evalExpression(right, scope)
-      case ComparisonCondition(left, ">", right) => evalExpression(left, scope) > evalExpression(right, scope)
-      case ComparisonCondition(left, "=", right) => evalExpression(left, scope) == evalExpression(right, scope)
-      case ComparisonCondition(left, "#", right) => evalExpression(left, scope) != evalExpression(right, scope)
-      case ComparisonCondition(left, "<=", right) => evalExpression(left, scope) <= evalExpression(right, scope)
-      case ComparisonCondition(left, ">=", right) => evalExpression(left, scope) >= evalExpression(right, scope)
+      case ComparisonExpression( first, rest ) =>
+        var l = evalExpression( first, scope )
+
+        def comp( cs: List[(String, ExpressionAST)] ): Boolean =
+          cs match {
+            case Nil => true
+            case (c, e) :: t =>
+              val r = evalExpression( e, scope )
+              val res =
+                c match {
+                  case "<" => l < r
+                  case ">" => l > r
+                  case "=" => l == r
+                  case "!=" => l != r
+                  case "<=" => l <= r
+                  case ">=" => l >= r
+                }
+
+              if (res) {
+                l = r
+                comp( t )
+              } else
+                false
+          }
+
+        comp( rest )
     }
 
-  def evalExpression(expr: ExpressionAST, scope: List[Map[String, Any]]): Int =
+  def evalExpression( expr: ExpressionAST, scope: List[Map[String, Any]] ): Int =
     expr match {
+//      case IfExpression( cond, body ) => if (evalCondition(cond, scope)) evalStatement(body, scope)
       case IdentExpression(pos, name) =>
         find(name, scope) match {
           case None => sys.error(pos.longErrorText(s"'$name' not declared"))
@@ -56,7 +82,7 @@ object Evaluator {
           case Some((n: Int, _)) => n
           case _ => sys.error(pos.longErrorText(s"'$name' not an integer"))
         }
-      case NumberExpression(n) => n
+      case NumberExpression(n) => n.intValue
       case BinaryExpression(left, "+", right) => evalExpression(left, scope) + evalExpression(right, scope)
       case BinaryExpression(left, "-", right) => evalExpression(left, scope) - evalExpression(right, scope)
       case BinaryExpression(left, "*", right) => evalExpression(left, scope) * evalExpression(right, scope)
