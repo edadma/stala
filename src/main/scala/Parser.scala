@@ -7,7 +7,7 @@ import scala.collection.immutable.ArraySeq
 
 object Parser extends Matchers[Reader] {
 
-  reserved ++= List( "const", "var", "def", "if", "then", "while", "do" )
+  reserved ++= List( "const", "var", "def", "if", "then", "elsif", "else", "while", "do" )
   delimiters ++= List( "+", "-", "*", "/", "(", ")", ";", ",", "=", "#", "<", "<=", ">", ">=", "{", "}" )
 
   def program = matchall( block )
@@ -43,9 +43,14 @@ object Parser extends Matchers[Reader] {
       case c ~ v ~ p ~ s => BlockExpression( c ++ v ++ p, s )
     }
 
+  def elsif =
+    "elsif" ~ expression ~ "then" ~ statement ^^ {
+      case _ ~ e ~ _ ~ s => (e, s)
+    }
+
   def statement: Matcher[StatementAST] =
     pos ~ ident ~ "=" ~ expression ^^ { case p ~ n ~ _ ~ e => AssignStatement( p, n, e ) } |
-    "if" ~ expression ~ "then" ~ statement ^^ { case _ ~ c ~ _ ~ s => IfStatement( c, s ) } |
+    "if" ~ expression ~ "then" ~ statement ~ rep(elsif) ~ opt("else" ~> statement) ^^ { case _ ~ c ~ _ ~ s ~ ei ~ e  => IfStatement( c, s, ei, e ) } |
     "while" ~ expression ~ "do" ~ statement ^^ { case _ ~ c ~ _ ~ s => WhileStatement( c, s ) } |
     expression ^^ ExpressionStatement
 

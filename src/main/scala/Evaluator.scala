@@ -47,7 +47,25 @@ object Evaluator {
 //          case Some((b: Block, inner)) => evalStatement(b, inner)
 //          case _ => sys.error(pos.longErrorText(s"'$name' not a procedure"))
 //        }
-      case IfStatement( cond, body ) => if (evalCondition(cond, scope)) evalStatement( body, scope )
+      case IfStatement( cond, stat, elsifs, els ) =>
+        if (evalCondition(cond, scope))
+          evalStatement( stat, scope )
+        else {
+          def elsif( l: List[(ExpressionAST, StatementAST)] ): Boolean =
+            l match {
+              case Nil => false
+              case (c, e) :: t =>
+                if (evalCondition(c, scope)) {
+                  evalStatement( e, scope )
+                  true
+                } else
+                  elsif( t )
+            }
+
+          if (!elsif( elsifs ) && els.isDefined)
+            evalStatement( els.get, scope )
+        }
+
       case WhileStatement( cond, body ) => while (evalCondition(cond, scope)) evalStatement( body, scope )
       case ExpressionStatement( expr ) => evalExpression( expr, scope )
     }

@@ -13,8 +13,10 @@ object Main extends App {
       |println( func(6) );
       |c = 5 + a;
       |println( c );
-      |c = 123;
-      |println( c )
+      |c = 300;
+      |println( c );
+      |
+      |if c < 200 then println( 'less' ) else println( 'not less' )
     """.stripMargin
   val ast = Parser.parseProgram( io.Source.fromString(s) )
 
