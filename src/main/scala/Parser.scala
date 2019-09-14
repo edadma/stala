@@ -65,11 +65,10 @@ object Parser extends Matchers[Reader] {
     integerLit ^^ NumberExpression |
     "(" ~> expression <~ ")"
 
-  def run( s: String ) =
-    program( Reader.fromString(s) ) match {
-      case Match( result, _ ) => evalBlock( result, Nil )
+  def parseProgram( src: io.Source ) =
+    program( Reader.fromSource(src) ) match {
+      case Match( result, _ ) => result
       case m: Mismatch => m.error
     }
-
 
 }
