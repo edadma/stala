@@ -11,6 +11,6 @@ object Main extends App {
 
   println( ast )
 
-  Evaluator.evalProgram( ast )
+  Evaluator.evalBlock( ast, Nil )
 
 }

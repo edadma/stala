@@ -2,13 +2,15 @@ package xyz.hyperreal.stala
 
 import xyz.hyperreal.pattern_matcher.{Matchers, Reader}
 
+import scala.collection.immutable.ArraySeq
+
 
 object Parser extends Matchers[Reader] {
 
   reserved ++= List( "const", "var", "def", "if", "then", "while", "do" )
   delimiters ++= List( "+", "-", "*", "/", "(", ")", ";", ",", "=", "#", "<", "<=", ">", ">=", "{", "}" )
 
-  def program = matchall( programBlock )
+  def program = matchall( block )
 
   def const = pos ~ ident ~ "=" ~ expression ^^ {
     case p ~ n ~ _ ~ e => ConstDeclaration( p, n, e )
@@ -32,31 +34,23 @@ object Parser extends Matchers[Reader] {
   def parms = repsep(pos ~ ident, ",") ^^ (_ map { case p ~ i => (p, i) })
 
   def function: Matcher[FunctionDeclaration] =
-    ("def" ~> pos) ~ ident ~ ("(" ~> parms <~ ")") ~ ("=" ~> block) ^^ {
-      case p ~ n ~ ps ~ s => FunctionDeclaration( p, n, ps, Nil, s )
+    ("def" ~> pos) ~ ident ~ ("(" ~> parms <~ ")") ~ ("=" ~> statement) ^^ {
+      case p ~ n ~ ps ~ s => FunctionDeclaration( p, n, ArraySeq.from(ps), s )
     }
 
-  def programBlock =
-    consts ~ vars ~ rep(function) ~ statements ^^ {
-      case c ~ v ~ p ~ s => ProgramAST( c ++ v ++ p, s )
+  def block =
+    consts ~ vars ~ rep(function) ~ rep1sep(statement, ";") ^^ {
+      case c ~ v ~ p ~ s => BlockExpression( c ++ v ++ p, s )
     }
-
-  def statements = rep1sep(statement, ";") ^^ SequenceStatement
-
-  def block = statement | "{" ~> statements <~ "}"
 
   def statement: Matcher[StatementAST] =
     pos ~ ident ~ "=" ~ expression ^^ { case p ~ n ~ _ ~ e => AssignStatement( p, n, e ) } |
-    "if" ~ expression ~ "then" ~ block ^^ { case _ ~ c ~ _ ~ s => IfStatement( c, s ) } |
-    "while" ~ expression ~ "do" ~ block ^^ { case _ ~ c ~ _ ~ s => WhileStatement( c, s ) } |
+    "if" ~ expression ~ "then" ~ statement ^^ { case _ ~ c ~ _ ~ s => IfStatement( c, s ) } |
+    "while" ~ expression ~ "do" ~ statement ^^ { case _ ~ c ~ _ ~ s => WhileStatement( c, s ) } |
     expression ^^ ExpressionStatement
 
   def expression: Matcher[ExpressionAST] =
-//    conditional |
     comparison
-
-//  def conditional =
-//    "if" ~ expression ~ "then" ~ block ^^ { case _ ~ c ~ _ ~ s => IfExpression( c, s ) }
 
   def comparison =
     additive ~ rep(("="|"#"|"<"|"<="|">"|">=") ~ additive) ^^ {
@@ -81,7 +75,9 @@ object Parser extends Matchers[Reader] {
     floatLit ^^ (n => NumberExpression( n.asInstanceOf[Number] )) |
     singleStringLit ^^ StringExpression |
     pos ~ ident ~ ("(" ~> repsep(expression, ",") <~ ")") ^^ {
-      case p ~ n ~ a => ApplyExpression( p, n, a ) } |
+      case p ~ n ~ a => ApplyExpression( p, n, ArraySeq.from(a) ) } |
+    ("if" ~> expression <~ "then") ~ expression ~ opt("else" ~> expression) ^^ { case c ~ y ~ n => IfExpression( c, y, n ) } |
+    "{" ~> block <~ "}" |
     "(" ~> expression <~ ")"
 
   def parseProgram( src: io.Source ) =
