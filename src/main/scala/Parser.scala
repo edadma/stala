@@ -7,7 +7,7 @@ import scala.collection.immutable.ArraySeq
 
 object Parser extends Matchers[Reader] {
 
-  reserved ++= List( "const", "var", "def", "if", "then", "elsif", "else", "while", "do" )
+  reserved ++= List( "const", "var", "def", "if", "then", "else", "while", "do" )
   delimiters ++= List( "+", "-", "*", "/", "(", ")", ";", ",", "=", "#", "<", "<=", ">", ">=", "{", "}" )
 
   def program = matchall( block )
@@ -34,25 +34,25 @@ object Parser extends Matchers[Reader] {
   def parms = repsep(pos ~ ident, ",") ^^ (_ map { case p ~ i => (p, i) })
 
   def function: Matcher[FunctionDeclaration] =
-    ("def" ~> pos) ~ ident ~ ("(" ~> parms <~ ")") ~ ("=" ~> (("{" ~> block <~ "}") ^^ ExpressionStatement | (statement <~ ";"))) ^^ {
+    ("def" ~> pos) ~ ident ~ ("(" ~> parms <~ ")") ~ ("=" ~> (("{" ~> block <~ "}") ^^ ExpressionStatement | statement)) ^^ {
       case p ~ n ~ ps ~ s => FunctionDeclaration( p, n, ArraySeq.from(ps), s )
     }
 
   def block =
-    consts ~ vars ~ rep(function) ~ rep1sep(statement, ";") ^^ {
+    consts ~ vars ~ rep(function) ~ rep(statement) ^^ {
       case c ~ v ~ p ~ s => BlockExpression( c ++ v ++ p, s )
     }
 
-  def elsif =
-    "elsif" ~ expression ~ "then" ~ statement ^^ {
-      case _ ~ e ~ _ ~ s => (e, s)
-    }
+  def compoundStatement: Matcher[StatementAST] =
+    "{" ~> block <~ "}" ^^ ExpressionStatement |
+    "if" ~ expression ~ "then" ~ statement ~ opt("else" ~> statement) ^^ { case _ ~ c ~ _ ~ s ~ e  => IfStatement( c, s, e ) } |
+    "while" ~ expression ~ "do" ~ statement ^^ { case _ ~ c ~ _ ~ s => WhileStatement( c, s ) }
 
-  def statement: Matcher[StatementAST] =
+  def simpleStatement: Matcher[StatementAST] =
     pos ~ ident ~ "=" ~ expression ^^ { case p ~ n ~ _ ~ e => AssignStatement( p, n, e ) } |
-    "if" ~ expression ~ "then" ~ statement ~ rep(elsif) ~ opt("else" ~> statement) ^^ { case _ ~ c ~ _ ~ s ~ ei ~ e  => IfStatement( c, s, ei, e ) } |
-    "while" ~ expression ~ "do" ~ statement ^^ { case _ ~ c ~ _ ~ s => WhileStatement( c, s ) } |
     expression ^^ ExpressionStatement
+
+  def statement = compoundStatement | simpleStatement <~ ";"
 
   def expression: Matcher[ExpressionAST] =
     comparison

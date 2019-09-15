@@ -18,7 +18,7 @@ case class VarDeclaration( pos: Reader, name: String, value: Option[ExpressionAS
 
 abstract class StatementAST extends AST
 case class AssignStatement( pos: Reader, name: String, expr: ExpressionAST ) extends StatementAST
-case class IfStatement( cond: ExpressionAST, stat: StatementAST, elsifs: List[(ExpressionAST, StatementAST)], els: Option[StatementAST] ) extends StatementAST
+case class IfStatement( cond: ExpressionAST, stat: StatementAST, els: Option[StatementAST] ) extends StatementAST
 case class WhileStatement( cond: ExpressionAST, stat: StatementAST ) extends StatementAST
 case class ExpressionStatement( expr: ExpressionAST ) extends StatementAST
 

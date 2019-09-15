@@ -16,7 +16,16 @@ object Main extends App {
       |c = 300;
       |println( c );
       |
-      |if c < 200 then println( 'less' ) else println( 'not less' )
+      |if c = 300 then println( 'equal' ); else println( 'not' );
+      |
+      |c = 0;
+      |
+      |while c < 5 do {
+      |  c = c + 1;
+      |  println( c );
+      |}
+      |
+      |println( 'done' );
     """.stripMargin
   val ast = Parser.parseProgram( io.Source.fromString(s) )
 
