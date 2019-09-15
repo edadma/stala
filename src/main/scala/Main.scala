@@ -10,7 +10,19 @@ object Main extends App {
       |
       |def func( a ) = a + 5;
       |
+      |def f( a, b ) = {
+      |  var i = a;
+      |
+      |  while i <= b do {
+      |    println( i );
+      |    i = i + 1;
+      |  }
+      |
+      |  234;
+      |}
+      |
       |println( func(6) );
+      |println( f(3, 5) );
       |c = 5 + a;
       |println( c );
       |c = 300;

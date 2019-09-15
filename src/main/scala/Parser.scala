@@ -7,7 +7,11 @@ import scala.collection.immutable.ArraySeq
 
 object Parser extends Matchers[Reader] {
 
-  reserved ++= List( "const", "var", "def", "if", "then", "else", "while", "do" )
+  reserved ++=
+    List(
+      "const", "var", "def", "if", "then", "else", "while", "do",
+      "machine", "state", "on", "goto", "entry", "exit", "self"
+    )
   delimiters ++= List( "+", "-", "*", "/", "(", ")", ";", ",", "=", "#", "<", "<=", ">", ">=", "{", "}" )
 
   def program = matchall( block )
@@ -31,6 +35,21 @@ object Parser extends Matchers[Reader] {
       case Some( l ) => l
     }
 
+  def machine =
+    "machine" ~ pos ~ ident ~ "{" ~ consts ~ vars ~ rep(function) ~ rep1(state) ~ "}" ^^ {
+      case _ ~ p ~ n ~ _ ~ c ~ v ~ f ~ s ~ _ => MachineDeclaration( p, n, c ++ v ++ f, s )
+    }
+
+  def event =
+    "on" ~ expression ~ "do" ~ statement ^^ {
+      case _ ~ e ~ _ ~ s => EventAST( e, s )
+    }
+
+  def state =
+    "state" ~ pos ~ ident ~ "{" ~ opt("entry" ~> statement) ~ rep1(event) ~ opt("exit" ~> statement) ~ "}" ^^ {
+      case _ ~ p ~ n ~ _ ~ en ~ ev ~ ex ~ _ => StateAST( p, n, en, ev, ex )
+    }
+
   def parms = repsep(pos ~ ident, ",") ^^ (_ map { case p ~ i => (p, i) })
 
   def function: Matcher[FunctionDeclaration] =
@@ -40,7 +59,7 @@ object Parser extends Matchers[Reader] {
 
   def block =
     consts ~ vars ~ rep(function) ~ rep(statement) ^^ {
-      case c ~ v ~ p ~ s => BlockExpression( c ++ v ++ p, s )
+      case c ~ v ~ f ~ s => BlockExpression( c ++ v ++ f, s )
     }
 
   def compoundStatement: Matcher[StatementAST] =

@@ -15,6 +15,10 @@ abstract class DeclarationAST extends AST {
 case class FunctionDeclaration( pos: Reader, name: String, parms: ArraySeq[(Reader, String)], stat: StatementAST ) extends DeclarationAST
 case class ConstDeclaration( pos: Reader, name: String, value: ExpressionAST ) extends DeclarationAST
 case class VarDeclaration( pos: Reader, name: String, value: Option[ExpressionAST] ) extends DeclarationAST
+case class MachineDeclaration( pos: Reader, name: String, decls: List[DeclarationAST], states: List[StateAST] ) extends DeclarationAST
+
+case class StateAST( pos: Reader, name: String, entry: Option[StatementAST], events: List[EventAST], exit: Option[StatementAST] ) extends AST
+case class EventAST( expr: ExpressionAST, stat: StatementAST ) extends AST
 
 abstract class StatementAST extends AST
 case class AssignStatement( pos: Reader, name: String, expr: ExpressionAST ) extends StatementAST
