@@ -21,15 +21,15 @@ case class StateAST( pos: Reader, name: String, entry: Option[StatementAST], eve
 case class EventAST( expr: ExpressionAST, stat: StatementAST ) extends AST
 
 abstract class StatementAST extends AST
-case class GotoStatement( pos: Reader, name: String, var stat: StateAST ) extends StatementAST
-case class AssignStatement( pos: Reader, name: String, expr: ExpressionAST ) extends StatementAST
+case class GotoStatement( pos: Reader, name: String, var stat: StateAST = _ ) extends StatementAST
+case class AssignStatement( pos: Reader, name: String, expr: ExpressionAST, var v: Var = _ ) extends StatementAST
 case class IfStatement( cond: ExpressionAST, stat: StatementAST, els: Option[StatementAST] ) extends StatementAST
 case class WhileStatement( cond: ExpressionAST, stat: StatementAST ) extends StatementAST
 case class ExpressionStatement( expr: ExpressionAST ) extends StatementAST
 
 abstract class ExpressionAST extends AST
 case class IfExpression( cond: ExpressionAST, yes: ExpressionAST, no: Option[ExpressionAST] ) extends ExpressionAST
-case class BlockExpression( decls: List[DeclarationAST], stats: List[StatementAST] ) extends ExpressionAST
+case class BlockExpression( consts: List[DeclarationAST], vars: List[DeclarationAST], funcs: List[DeclarationAST], machs: List[DeclarationAST], stats: List[StatementAST] ) extends ExpressionAST
 case class ComparisonExpression( first: ExpressionAST, rest: List[(String, ExpressionAST)] ) extends ExpressionAST
 case class ApplyExpression( pos: Reader, name: String, args: ArraySeq[ExpressionAST] ) extends ExpressionAST
 case class NegateExpression( x: ExpressionAST ) extends ExpressionAST
