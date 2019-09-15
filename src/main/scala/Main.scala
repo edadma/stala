@@ -21,6 +21,28 @@ object Main extends App {
       |  234;
       |}
       |
+      |machine nice {
+      |  state letter_n {
+      |    on 'n' do goto letter_i;
+      |    otherwise { println( 'expected n' ); }
+      |  }
+      |
+      |  state letter_i {
+      |    on 'i' do goto letter_c;
+      |    otherwise { println( 'expected i' ); }
+      |  }
+      |
+      |  state letter_c {
+      |    on 'c' do goto letter_e;
+      |    otherwise { println( 'expected c' ); }
+      |  }
+      |
+      |  state letter_e {
+      |    on 'e' do println( 'nice!' );
+      |    otherwise { println( 'expected e' ); }
+      |  }
+      |}
+      |
       |println( func(6) );
       |println( f(3, 5) );
       |c = 5 + a;

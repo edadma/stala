@@ -10,7 +10,7 @@ object Parser extends Matchers[Reader] {
   reserved ++=
     List(
       "const", "var", "def", "if", "then", "else", "while", "do",
-      "machine", "state", "on", "goto", "entry", "exit", "self"
+      "machine", "state", "on", "goto", "entry", "exit", "self", "otherwise"
     )
   delimiters ++= List( "+", "-", "*", "/", "(", ")", ";", ",", "=", "#", "<", "<=", ">", ">=", "{", "}" )
 
@@ -46,8 +46,8 @@ object Parser extends Matchers[Reader] {
     }
 
   def state =
-    "state" ~ pos ~ ident ~ "{" ~ opt("entry" ~> statement) ~ rep1(event) ~ opt("exit" ~> statement) ~ "}" ^^ {
-      case _ ~ p ~ n ~ _ ~ en ~ ev ~ ex ~ _ => StateAST( p, n, en, ev, ex )
+    "state" ~ pos ~ ident ~ "{" ~ opt("entry" ~> statement) ~ rep1(event) ~ opt("otherwise" ~> statement) ~ opt("exit" ~> statement) ~ "}" ^^ {
+      case _ ~ p ~ n ~ _ ~ en ~ ev ~ d ~ ex ~ _ => StateAST( p, n, en, ev, d, ex )
     }
 
   def parms = repsep(pos ~ ident, ",") ^^ (_ map { case p ~ i => (p, i) })
@@ -58,8 +58,8 @@ object Parser extends Matchers[Reader] {
     }
 
   def block =
-    consts ~ vars ~ rep(function) ~ rep(statement) ^^ {
-      case c ~ v ~ f ~ s => BlockExpression( c ++ v ++ f, s )
+    consts ~ vars ~ rep(function) ~ rep(machine) ~ rep(statement) ^^ {
+      case c ~ v ~ f ~ m ~ s => BlockExpression( c ++ v ++ f ++ m, s )
     }
 
   def compoundStatement: Matcher[StatementAST] =
@@ -69,6 +69,7 @@ object Parser extends Matchers[Reader] {
 
   def simpleStatement: Matcher[StatementAST] =
     pos ~ ident ~ "=" ~ expression ^^ { case p ~ n ~ _ ~ e => AssignStatement( p, n, e ) } |
+    "goto" ~ pos ~ ident ^^ { case _ ~ p ~ n => GotoStatement( p, n ) } |
     expression ^^ ExpressionStatement
 
   def statement = compoundStatement | simpleStatement <~ ";"

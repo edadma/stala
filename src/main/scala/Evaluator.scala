@@ -6,11 +6,14 @@ object Evaluator {
 
   def evalBlock( block: BlockExpression, scope: List[Map[String, Any]] ) =
     block.decls.groupBy(_.name) collectFirst { case (_, _ :: x :: _) => List(x) } match {
-      case None => evalStatements( block.stats, block.decls.map {
-        case ConstDeclaration( pos, name, value ) => name -> evalExpression( value, scope )
-        case VarDeclaration( pos, name, None ) => name -> Var( 0 )
-        case VarDeclaration( pos, name, Some(value) ) => name -> Var( evalExpression(value, scope) )
-        case d => d.name -> d }.toMap :: scope )
+      case None =>
+        evalStatements( block.stats,
+          block.decls.map {
+            case ConstDeclaration( pos, name, value ) => name -> evalExpression( value, scope )
+            case VarDeclaration( pos, name, None ) => name -> Var( 0 )
+            case VarDeclaration( pos, name, Some(value) ) => name -> Var( evalExpression(value, scope) )
+            case d => d.name -> d
+          }.toMap :: scope )
       case Some( List(d) ) => sys.error( d.pos.longErrorText(s"'${d.name}' is a duplicate") )
     }
 

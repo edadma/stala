@@ -17,10 +17,11 @@ case class ConstDeclaration( pos: Reader, name: String, value: ExpressionAST ) e
 case class VarDeclaration( pos: Reader, name: String, value: Option[ExpressionAST] ) extends DeclarationAST
 case class MachineDeclaration( pos: Reader, name: String, decls: List[DeclarationAST], states: List[StateAST] ) extends DeclarationAST
 
-case class StateAST( pos: Reader, name: String, entry: Option[StatementAST], events: List[EventAST], exit: Option[StatementAST] ) extends AST
+case class StateAST( pos: Reader, name: String, entry: Option[StatementAST], events: List[EventAST], default: Option[StatementAST], exit: Option[StatementAST] ) extends AST
 case class EventAST( expr: ExpressionAST, stat: StatementAST ) extends AST
 
 abstract class StatementAST extends AST
+case class GotoStatement( pos: Reader, name: String ) extends StatementAST
 case class AssignStatement( pos: Reader, name: String, expr: ExpressionAST ) extends StatementAST
 case class IfStatement( cond: ExpressionAST, stat: StatementAST, els: Option[StatementAST] ) extends StatementAST
 case class WhileStatement( cond: ExpressionAST, stat: StatementAST ) extends StatementAST
