@@ -21,7 +21,7 @@ case class StateAST( pos: Reader, name: String, entry: Option[StatementAST], eve
 case class EventAST( expr: ExpressionAST, stat: StatementAST ) extends AST
 
 abstract class StatementAST extends AST
-case class GotoStatement( pos: Reader, name: String ) extends StatementAST
+case class GotoStatement( pos: Reader, name: String, var stat: StateAST ) extends StatementAST
 case class AssignStatement( pos: Reader, name: String, expr: ExpressionAST ) extends StatementAST
 case class IfStatement( cond: ExpressionAST, stat: StatementAST, els: Option[StatementAST] ) extends StatementAST
 case class WhileStatement( cond: ExpressionAST, stat: StatementAST ) extends StatementAST

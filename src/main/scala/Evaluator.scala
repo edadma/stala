@@ -19,15 +19,6 @@ object Evaluator {
       case Some( List(d) ) => sys.error( d.pos.longErrorText(s"'${d.name}' is a duplicate") )
     }
 
-  def find( name: String, scope: List[Map[String, Any]] ): Option[(Any, List[Map[String, Any]])] =
-    scope match {
-      case Nil => None
-      case outer@h :: t => h get name match {
-        case None => find( name, t )
-        case Some( v ) => Some( (v, outer) )
-      }
-    }
-
   def evalStatements( stats: List[StatementAST], scope: List[Map[String, Any]]) = {
     def eval( result: Any, rest: List[StatementAST] ): Any =
       rest match {
