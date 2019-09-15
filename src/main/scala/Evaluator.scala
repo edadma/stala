@@ -12,6 +12,8 @@ object Evaluator {
             case ConstDeclaration( pos, name, value ) => name -> evalExpression( value, scope )
             case VarDeclaration( pos, name, None ) => name -> Var( 0 )
             case VarDeclaration( pos, name, Some(value) ) => name -> Var( evalExpression(value, scope) )
+            case m@MachineDeclaration( pos, name, decls, states ) =>
+              name -> m
             case d => d.name -> d
           }.toMap :: scope )
       case Some( List(d) ) => sys.error( d.pos.longErrorText(s"'${d.name}' is a duplicate") )
