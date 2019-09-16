@@ -42,12 +42,12 @@ object Parser extends Matchers[Reader] {
 
   def event =
     "on" ~ expression ~ "do" ~ statement ^^ {
-      case _ ~ e ~ _ ~ s => EventAST( e, s )
+      case _ ~ e ~ _ ~ s => (e, s)
     }
 
   def state =
     "state" ~ pos ~ ident ~ "{" ~ opt("entry" ~> statement) ~ rep1(event) ~ opt("otherwise" ~> statement) ~ opt("exit" ~> statement) ~ "}" ^^ {
-      case _ ~ p ~ n ~ _ ~ en ~ ev ~ d ~ ex ~ _ => StateAST( p, n, en, ev, d, ex )
+      case _ ~ p ~ n ~ _ ~ en ~ ev ~ d ~ ex ~ _ => StateDeclaration( p, n, en, ev, d, ex )
     }
 
   def parms = repsep(pos ~ ident, ",") ^^ (_ map { case p ~ i => (p, i) })
