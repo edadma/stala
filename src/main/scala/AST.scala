@@ -34,7 +34,7 @@ case class IfExpression( cond: ExpressionAST, yes: ExpressionAST, no: Option[Exp
 case class BlockExpression( decls: List[DeclarationAST], stats: List[StatementAST] ) extends ExpressionAST
 case class ComparisonExpression( first: ExpressionAST, rest: List[(String, ExpressionAST)] ) extends ExpressionAST
 case class ApplyExpression( pos: Reader, name: String, args: ArraySeq[ExpressionAST], var decl: DeclarationAST = null ) extends ExpressionAST
-case class NegateExpression( x: ExpressionAST ) extends ExpressionAST
+case class UnaryExpression( op: String, expr: ExpressionAST ) extends ExpressionAST
 case class BinaryExpression( left: ExpressionAST, op: String, right: ExpressionAST ) extends ExpressionAST
 case class LiteralExpression( v: Any ) extends ExpressionAST
 case class IdentExpression( pos: Reader, name: String, var decl: DeclarationAST = null ) extends ExpressionAST

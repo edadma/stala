@@ -61,6 +61,10 @@ object Preprocessor {
 
   def preprocessExpression( expr: ExpressionAST, scope: List[Map[String, DeclarationAST]] ): Unit =
     expr match {
+      case BinaryExpression( left, _, right ) =>
+        preprocessExpression( left, scope )
+        preprocessExpression( right, scope )
+      case UnaryExpression( _, expr ) => preprocessExpression( expr, scope )
       case BlockExpression( decls, stats ) => preprocessBlock( decls, stats, scope )
       case _: LiteralExpression =>
       case a@ApplyExpression( pos, name, args, _ ) =>

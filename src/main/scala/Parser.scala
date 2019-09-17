@@ -86,7 +86,7 @@ object Parser extends Matchers[Reader] {
   def additive =
     opt("+" | "-") ~ term ~ rep(("+" | "-") ~ term) ^^ {
       case (None|Some("+")) ~ t ~ l => (l foldLeft t) { case (x, o ~ y) => BinaryExpression( x, o, y ) }
-      case _ ~ t ~ l => (l foldLeft (NegateExpression( t ): ExpressionAST)) { case (x, o ~ y) => BinaryExpression( x, o, y ) }
+      case _ ~ t ~ l => (l foldLeft (UnaryExpression( "-", t ): ExpressionAST)) { case (x, o ~ y) => BinaryExpression( x, o, y ) }
     }
 
   def term: Matcher[ExpressionAST] =

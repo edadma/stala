@@ -70,6 +70,7 @@ object Evaluator {
       case IfExpression( cond, yes, Some(no) ) => if (evalCondition(cond)) evalExpression( yes ) else evalExpression( no )
       case IdentExpression( _, _, decl ) => decl.value
       case LiteralExpression( v ) => v
+      case UnaryExpression( "-", expr ) => -evalInt( expr )
       case BinaryExpression(left, "+", right) => evalInt(left) + evalInt(right)
       case BinaryExpression(left, "-", right) => evalInt(left) - evalInt(right)
       case BinaryExpression(left, "*", right) => evalInt(left) * evalInt(right)
