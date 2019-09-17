@@ -44,12 +44,17 @@ object Preprocessor {
 
   def preprocessStatement( stat: StatementAST, scope: List[Map[String, DeclarationAST]] ): Unit =
     stat match {
+      case WhileStatement( cond, stat ) =>
+        preprocessExpression( cond, scope )
+        preprocessStatement( stat, scope )
       case a@AssignStatement( pos, name, expr, _ ) =>
         find( name, scope ) match {
           case None => problem( pos, s"variable '$name' not found" )
           case Some( v: VarDeclaration ) => a.decl = v
           case Some( _ ) => problem( pos, s"'$name' not a variable" )
         }
+
+        preprocessExpression( expr, scope )
       case ExpressionStatement( expr ) => preprocessExpression( expr, scope )
       case g@GotoStatement( pos, name, _ ) =>
         find( name, scope ) match {
@@ -61,6 +66,9 @@ object Preprocessor {
 
   def preprocessExpression( expr: ExpressionAST, scope: List[Map[String, DeclarationAST]] ): Unit =
     expr match {
+      case ComparisonExpression( first, rest ) =>
+        preprocessExpression( first, scope )
+        rest foreach {case (_, cond) => preprocessExpression( cond, scope )}
       case BinaryExpression( left, _, right ) =>
         preprocessExpression( left, scope )
         preprocessExpression( right, scope )

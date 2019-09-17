@@ -48,10 +48,11 @@ object Evaluator {
   def evalInt( expr: ExpressionAST ) = evalExpression( expr ).asInstanceOf[Number].intValue
 
   def evalArgs( name: String, args: ArraySeq[ExpressionAST], parmc: Int ) = {
-    if (args.length < parmc)
-      sys.error( s"too few arguments to apply function '$name'" )
-    else if (args.length > parmc)
-      sys.error( s"too few arguments to apply function '$name'" )
+    if (parmc > 0)
+      if (args.length < parmc)
+        sys.error( s"too few arguments to apply function '$name'" )
+      else if (args.length > parmc)
+        sys.error( s"too few arguments to apply function '$name'" )
 
     args map (evalExpression( _ ))
   }
@@ -63,7 +64,8 @@ object Evaluator {
         decl.value match {
 //          case FunctionDeclaration( _, _, parms, stat ) =>
 //            evalStatement( stat, ((parms zip evalArgs(name, args, parms.length)) map {case ((_, n), v) => n -> v}).toMap :: outer )
-          case NativeFunction( parmc, func ) => func( evalArgs(name, args, parmc) )
+          case NativeFunction( parmc, func ) =>
+            func( evalArgs(name, args, parmc) )
           case _ => problem( pos, s"'$name' not a function" )
         }
       case IfExpression( cond, yes, None ) => if (evalCondition(cond)) evalExpression( yes ) else ()

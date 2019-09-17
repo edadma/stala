@@ -5,8 +5,18 @@ object Main extends App {
 
   val s =
     """
-      |println( -123 );
-    """.stripMargin
+      |const a = 3, b = 4;
+      |var c = a + b;
+      |
+      |println( a + 5, b - 6, c );
+      |
+      |c = 1;
+      |
+      |while c <= 5 do {
+      |  println( c );
+      |  c = c + 1;
+      |}
+      |    """.stripMargin
 //    """
 //      |const a = 3, b = 4;
 //      |var c = 3 + 4;
