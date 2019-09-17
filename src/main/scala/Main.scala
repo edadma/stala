@@ -64,7 +64,8 @@ object Main extends App {
   val ast = Parser.parseProgram( io.Source.fromString(s) )
 
   println( ast )
-
-  Evaluator.evalBlock( ast, List(Predef.map) )
+  Preprocessor.preprocessBlock( ast.decls, ast.stats, Predef.map )
+  println( ast )
+  Evaluator.evalBlock( ast )
 
 }

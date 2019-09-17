@@ -59,7 +59,7 @@ object Parser extends Matchers[Reader] {
 
   def block =
     consts ~ vars ~ rep(function) ~ rep(machine) ~ rep(statement) ^^ {
-      case c ~ v ~ f ~ m ~ s => BlockExpression( c, v, f, m, s )
+      case c ~ v ~ f ~ m ~ s => BlockExpression( c ++ v ++ f ++ m, s )
     }
 
   def compoundStatement: Matcher[StatementAST] =
