@@ -53,6 +53,7 @@ object Main extends App {
       |
       |}
       |
+      |println( list(1, 2, 3), nil, array(1, 2, 3) );
       |println( a + 5, b - 6, c );
       |
       |c = 1;

@@ -39,6 +39,8 @@ object Evaluator {
           evalStatement( stat )
         else if (els isDefined)
           evalStatement( els.get )
+      case ForStatement( idx, expr, stat ) =>
+
       case WhileStatement( cond, body ) => while (evalCondition( cond )) evalStatement( body )
       case ExpressionStatement( expr ) => evalExpression( expr )
     }
@@ -72,6 +74,7 @@ object Evaluator {
       case IfExpression( cond, yes, Some(no) ) => if (evalCondition(cond)) evalExpression( yes ) else evalExpression( no )
       case IdentExpression( _, _, decl ) => decl.value
       case LiteralExpression( v ) => v
+      case RangeExpression( left, right ) => evalInt( left ) to evalInt( right )
       case UnaryExpression( "-", expr ) => -evalInt( expr )
       case BinaryExpression(left, "+", right) => evalInt(left) + evalInt(right)
       case BinaryExpression(left, "-", right) => evalInt(left) - evalInt(right)

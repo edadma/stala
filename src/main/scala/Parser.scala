@@ -9,10 +9,10 @@ object Parser extends Matchers[Reader] {
 
   reserved ++=
     List(
-      "const", "var", "def", "if", "then", "else", "while", "do",
+      "const", "var", "def", "if", "then", "else", "while", "do", "for", "not", "and", "or",
       "machine", "state", "on", "goto", "entry", "exit", "self", "otherwise"
     )
-  delimiters ++= List( "+", "-", "*", "/", "(", ")", ";", ",", "=", "#", "<", "<=", ">", ">=", "{", "}" )
+  delimiters ++= List( "+", "-", "*", "/", "(", ")", ";", ",", "=", "!=", "<", "<=", ">", ">=", "{", "}", "..", "<-" )
 
   def program = matchall( block )
 
@@ -65,6 +65,7 @@ object Parser extends Matchers[Reader] {
   def compoundStatement: Matcher[StatementAST] =
     "{" ~> block <~ "}" ^^ ExpressionStatement |
     "if" ~ expression ~ "then" ~ statement ~ opt("else" ~> statement) ^^ { case _ ~ c ~ _ ~ s ~ e  => IfStatement( c, s, e ) } |
+    "for" ~ ident ~ "<-" ~ expression ~ "do" ~ statement ^^ { case _ ~ v ~ _ ~ e ~ _ ~ s => ForStatement( v, e, s ) } |
     "while" ~ expression ~ "do" ~ statement ^^ { case _ ~ c ~ _ ~ s => WhileStatement( c, s ) }
 
   def simpleStatement: Matcher[StatementAST] =
@@ -79,10 +80,15 @@ object Parser extends Matchers[Reader] {
     comparison
 
   def comparison =
-    additive ~ rep(("="|"#"|"<"|"<="|">"|">=") ~ additive) ^^ {
+    additive ~ rep(("="|"!="|"<"|"<="|">"|">=") ~ additive) ^^ {
       case f ~ Nil => f
       case f ~ r => ComparisonExpression( f, r map {case c ~ e => (c, e)} )
     }
+
+  def range =
+    additive ~ ".." ~ additive ^^ {
+      case l ~ _ ~ r => RangeExpression( l, r ) } |
+    additive
 
   def additive =
     opt("+" | "-") ~ term ~ rep(("+" | "-") ~ term) ^^ {

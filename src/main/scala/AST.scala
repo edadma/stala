@@ -26,6 +26,7 @@ abstract class StatementAST extends AST
 case class GotoStatement( pos: Reader, name: String, var stat: StateDeclaration = null ) extends StatementAST
 case class AssignStatement( pos: Reader, name: String, expr: ExpressionAST, var decl: VarDeclaration = null ) extends StatementAST
 case class IfStatement( cond: ExpressionAST, stat: StatementAST, els: Option[StatementAST] ) extends StatementAST
+case class ForStatement( idx: String, expr: ExpressionAST, stat: StatementAST ) extends StatementAST
 case class WhileStatement( cond: ExpressionAST, stat: StatementAST ) extends StatementAST
 case class ExpressionStatement( expr: ExpressionAST ) extends StatementAST
 
@@ -38,3 +39,4 @@ case class UnaryExpression( op: String, expr: ExpressionAST ) extends Expression
 case class BinaryExpression( left: ExpressionAST, op: String, right: ExpressionAST ) extends ExpressionAST
 case class LiteralExpression( v: Any ) extends ExpressionAST
 case class IdentExpression( pos: Reader, name: String, var decl: DeclarationAST = null ) extends ExpressionAST
+case class RangeExpression( left: ExpressionAST, right: ExpressionAST ) extends ExpressionAST

@@ -49,6 +49,10 @@ object Preprocessor {
         preprocessExpression( cond, scope )
         preprocessStatement( stat, scope )
         els foreach (preprocessStatement( _, scope ))
+      case ForStatement( idx, expr, stat ) =>
+        // todo: idx goes into new scope
+        preprocessExpression( expr, scope )
+        preprocessStatement( stat, scope )
       case WhileStatement( cond, stat ) =>
         preprocessExpression( cond, scope )
         preprocessStatement( stat, scope )
@@ -76,6 +80,9 @@ object Preprocessor {
         preprocessExpression( first, scope )
         rest foreach {case (_, cond) => preprocessExpression( cond, scope )}
       case BinaryExpression( left, _, right ) =>
+        preprocessExpression( left, scope )
+        preprocessExpression( right, scope )
+      case RangeExpression( left, right ) =>
         preprocessExpression( left, scope )
         preprocessExpression( right, scope )
       case UnaryExpression( _, expr ) => preprocessExpression( expr, scope )
