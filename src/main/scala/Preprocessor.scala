@@ -19,6 +19,7 @@ object Preprocessor {
           case VarDeclaration( pos, name, None, _ ) =>
           case VarDeclaration( pos, name, Some(value), _ ) =>
             preprocessExpression(value, newscope)
+          case MachineDeclaration( pos, name, decls, states ) =>
         }
 //          val funcs =
 //            block.funcs map {
@@ -44,6 +45,10 @@ object Preprocessor {
 
   def preprocessStatement( stat: StatementAST, scope: List[Map[String, DeclarationAST]] ): Unit =
     stat match {
+      case IfStatement( cond, stat, els ) =>
+        preprocessExpression( cond, scope )
+        preprocessStatement( stat, scope )
+        els foreach (preprocessStatement( _, scope ))
       case WhileStatement( cond, stat ) =>
         preprocessExpression( cond, scope )
         preprocessStatement( stat, scope )
@@ -56,6 +61,7 @@ object Preprocessor {
 
         preprocessExpression( expr, scope )
       case ExpressionStatement( expr ) => preprocessExpression( expr, scope )
+      case GotoStatement( _, null, _ ) =>
       case g@GotoStatement( pos, name, _ ) =>
         find( name, scope ) match {
           case None => problem( pos, s"state '$name' not found" )

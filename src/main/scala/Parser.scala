@@ -46,7 +46,7 @@ object Parser extends Matchers[Reader] {
     }
 
   def state =
-    "state" ~ pos ~ ident ~ "{" ~ opt("entry" ~> statement) ~ rep1(event) ~ opt("otherwise" ~> statement) ~ opt("exit" ~> statement) ~ "}" ^^ {
+    "state" ~ pos ~ ident ~ "{" ~ opt("entry" ~> statement) ~ rep(event) ~ opt("otherwise" ~> statement) ~ opt("exit" ~> statement) ~ "}" ^^ {
       case _ ~ p ~ n ~ _ ~ en ~ ev ~ d ~ ex ~ _ => StateDeclaration( p, n, en, ev, d, ex )
     }
 
@@ -70,6 +70,7 @@ object Parser extends Matchers[Reader] {
   def simpleStatement: Matcher[StatementAST] =
     pos ~ ident ~ "=" ~ expression ^^ { case p ~ n ~ _ ~ e => AssignStatement( p, n, e ) } |
     "goto" ~ pos ~ ident ^^ { case _ ~ p ~ n => GotoStatement( p, n ) } |
+    "goto" ~ "self" ^^^ GotoStatement( null, null ) |
     expression ^^ ExpressionStatement
 
   def statement = compoundStatement | simpleStatement <~ ";"
