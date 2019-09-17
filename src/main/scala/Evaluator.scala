@@ -39,8 +39,12 @@ object Evaluator {
           evalStatement( stat )
         else if (els isDefined)
           evalStatement( els.get )
-      case ForStatement( idx, expr, stat ) =>
-
+      case ForStatement( idx, pos, expr, stat, const ) =>
+        val it =
+          evalExpression( expr ) match {
+            case e: IterableOnce[Any] => e.iterator
+            case _ => problem( )
+          }
       case WhileStatement( cond, body ) => while (evalCondition( cond )) evalStatement( body )
       case ExpressionStatement( expr ) => evalExpression( expr )
     }
