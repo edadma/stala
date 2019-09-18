@@ -42,8 +42,12 @@ object Evaluator {
       case ForStatement( idx, pos, expr, stat, const ) =>
         val it =
           evalExpression( expr ) match {
-            case e: IterableOnce[Any] => e.iterator
-            case _ => problem( )
+            case e: IterableOnce[Any] =>
+              for (i <- e.iterator) {
+                const.value = i
+                evalStatement( stat )
+              }
+            case _ => problem( pos, s"not iterable" )
           }
       case WhileStatement( cond, body ) => while (evalCondition( cond )) evalStatement( body )
       case ExpressionStatement( expr ) => evalExpression( expr )

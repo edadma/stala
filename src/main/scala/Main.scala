@@ -63,6 +63,10 @@ object Main extends App {
       |  c = c + 1;
       |}
       |
+      |for i <- 3..7 do
+      |  for j <- 0..1 do
+      |    println( i, j );
+      |
       |if c = 6 then
       |  println( 'equal' );
       |else

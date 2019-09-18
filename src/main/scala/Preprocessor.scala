@@ -49,11 +49,9 @@ object Preprocessor {
         preprocessExpression( cond, scope )
         preprocessStatement( stat, scope )
         els foreach (preprocessStatement( _, scope ))
-      case ForStatement( idx, expr, stat, const ) =>
-        val forscope = Map( idx -> const ) :: scope
-
+      case ForStatement( idx, _, expr, stat, const ) =>
         preprocessExpression( expr, scope )
-        preprocessStatement( stat, forscope )
+        preprocessStatement( stat, Map(idx -> const) :: scope )
       case WhileStatement( cond, stat ) =>
         preprocessExpression( cond, scope )
         preprocessStatement( stat, scope )

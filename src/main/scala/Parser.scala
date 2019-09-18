@@ -65,7 +65,7 @@ object Parser extends Matchers[Reader] {
   def compoundStatement: Matcher[StatementAST] =
     "{" ~> block <~ "}" ^^ ExpressionStatement |
     "if" ~ expression ~ "then" ~ statement ~ opt("else" ~> statement) ^^ { case _ ~ c ~ _ ~ s ~ e  => IfStatement( c, s, e ) } |
-    "for" ~ ident ~ "<-" ~ expression ~ "do" ~ statement ^^ { case _ ~ v ~ _ ~ e ~ _ ~ s => ForStatement( v, e, s ) } |
+    "for" ~ ident ~ "<-" ~ pos ~ expression ~ "do" ~ statement ^^ { case _ ~ v ~ _ ~ p ~ e ~ _ ~ s => ForStatement( v, p, e, s ) } |
     "while" ~ expression ~ "do" ~ statement ^^ { case _ ~ c ~ _ ~ s => WhileStatement( c, s ) }
 
   def simpleStatement: Matcher[StatementAST] =
@@ -80,7 +80,7 @@ object Parser extends Matchers[Reader] {
     comparison
 
   def comparison =
-    additive ~ rep(("="|"!="|"<"|"<="|">"|">=") ~ additive) ^^ {
+    range ~ rep(("="|"!="|"<"|"<="|">"|">=") ~ range) ^^ {
       case f ~ Nil => f
       case f ~ r => ComparisonExpression( f, r map {case c ~ e => (c, e)} )
     }
