@@ -8,8 +8,6 @@ object Predef {
   val list =
     List(
       "println" -> NativeFunction( -1, (a: ArraySeq[Any]) => println(a mkString ", ") ),
-      "nil" -> Nil,
-      "list" -> NativeFunction( -1, (a: ArraySeq[Any]) => a.toList ),
       "array" -> NativeFunction( -1, a => a )
     )
 
