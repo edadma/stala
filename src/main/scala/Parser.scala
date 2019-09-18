@@ -12,7 +12,7 @@ object Parser extends Matchers[Reader] {
       "const", "var", "def", "if", "then", "else", "while", "do", "for", "not", "and", "or",
       "machine", "state", "on", "goto", "entry", "exit", "self", "otherwise"
     )
-  delimiters ++= List( "+", "-", "*", "/", "(", ")", ";", ",", "=", "!=", "<", "<=", ">", ">=", "{", "}", "..", "<-" )
+  delimiters ++= List( "+", "-", "*", "/", "(", ")", ";", ",", "=", "!=", "<", "<=", ">", ">=", "{", "}", "..", "<-", "|", "[", "]" )
 
   def program = matchall( block )
 
@@ -110,7 +110,11 @@ object Parser extends Matchers[Reader] {
     singleStringLit ^^ LiteralExpression |
     ("if" ~> expression <~ "then") ~ expression ~ opt("else" ~> expression) ^^ { case c ~ y ~ n => IfExpression( c, y, n ) } |
     "{" ~> block <~ "}" |
-    "(" ~> expression <~ ")"
+    "(" ~> expression <~ ")" |
+    "[" ~> repsep(expression, ",") <~ "]" ^^ {
+      case Nil => LiteralExpression( Nil )
+      case l => ListExpression( l )
+    }
 
   def parseProgram( src: io.Source ) =
     program( Reader.fromSource(src) ) match {

@@ -1,6 +1,7 @@
 package xyz.hyperreal.stala
 
 import scala.collection.immutable.ArraySeq
+import scala.collection.mutable.ListBuffer
 
 object Evaluator {
 
@@ -69,6 +70,7 @@ object Evaluator {
 
   def evalExpression( expr: ExpressionAST ): Any =
     expr match {
+      case ListExpression( list ) => list map evalExpression
       case b: BlockExpression => evalBlock( b )
       case ApplyExpression( pos, name, args, decl ) =>
         decl.value match {

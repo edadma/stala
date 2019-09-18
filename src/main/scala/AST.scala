@@ -40,3 +40,4 @@ case class BinaryExpression( left: ExpressionAST, op: String, right: ExpressionA
 case class LiteralExpression( v: Any ) extends ExpressionAST
 case class IdentExpression( pos: Reader, name: String, var decl: DeclarationAST = null ) extends ExpressionAST
 case class RangeExpression( left: ExpressionAST, right: ExpressionAST ) extends ExpressionAST
+case class ListExpression( list: List[ExpressionAST] ) extends ExpressionAST

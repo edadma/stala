@@ -75,6 +75,8 @@ object Preprocessor {
 
   def preprocessExpression( expr: ExpressionAST, scope: List[Map[String, DeclarationAST]] ): Unit =
     expr match {
+      case ListExpression( list ) =>
+        list foreach (preprocessExpression(_, scope))
       case ComparisonExpression( first, rest ) =>
         preprocessExpression( first, scope )
         rest foreach {case (_, cond) => preprocessExpression( cond, scope )}
